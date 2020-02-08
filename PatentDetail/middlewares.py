@@ -9,11 +9,11 @@ import os
 import json
 import requests
 from twisted.internet.error import TimeoutError
-from scrapy.http import Response, HtmlResponse
+from scrapy.http import HtmlResponse
 from scrapy.downloadermiddlewares.retry import RetryMiddleware
 import logging
 
-from config import proxy_url
+from PatentDetail.config import proxy_url
 
 
 logger = logging.getLogger(__name__)
