@@ -28,7 +28,7 @@ class FilterPipeline(object):
         self.date_keys = []
         # 去多个换行
         self.text_keys = ['sovereignty', 'summary']
-        self.pattern = re.compile(r'\n+')
+        self.pattern = re.compile(r'[\n|\r]+')
         # 转成int
         self.int_keys = ['page_number']
 
@@ -43,7 +43,7 @@ class FilterPipeline(object):
                 elif key in self.date_keys:
                     item[key] = datetime.datetime.strptime(value, '%Y-%m-%d')
                 elif key in self.text_keys:
-                    item[key] = re.sub(self.pattern, '\n', value)
+                    item[key] = re.sub(self.pattern, '', value)
                 elif key in self.int_keys:
                     item[key] = int(value)
             if 'response' in item:

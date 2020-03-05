@@ -85,7 +85,8 @@ class DetailSpider(scrapy.Spider):
 
                 while index < length:
                     # 提取出文本
-                    text = td_list[index].xpath('.//text()').extract_first().strip()
+                    text_list = td_list[index].xpath('.//text()').extract()
+                    text = ''.join(text_list).strip()
                     # 已经有key，则text为对应的value
                     if real_key:
                         item[real_key], real_key = text, None
@@ -94,13 +95,15 @@ class DetailSpider(scrapy.Spider):
                         # 正则未提取到任何值 则键发生问题
                         result = re.search(self.pattern, text)
                         if result is None:
-                            raise
-                        key = result.group(1)
-                        # 对应的键 没有则跳过下一个
-                        if key in PatentItem.mapping:
-                            real_key = PatentItem.mapping[key]
+                            if real_key is not None:
+                                raise
                         else:
-                            index += 1
+                            key = result.group(1)
+                            # 对应的键 没有则跳过下一个
+                            if key in PatentItem.mapping:
+                                real_key = PatentItem.mapping[key]
+                            else:
+                                index += 1
                     index += 1
                 tr_index += 1
             yield item

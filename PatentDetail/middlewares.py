@@ -8,9 +8,12 @@
 import os
 import json
 import requests
-from scrapy.http import Response, HtmlResponse
+from twisted.internet.error import TimeoutError
+from scrapy.http import HtmlResponse
 from scrapy.downloadermiddlewares.retry import RetryMiddleware
 import logging
+
+from PatentDetail.config import proxy_url
 
 
 logger = logging.getLogger(__name__)
@@ -56,6 +59,11 @@ class RetryOrErrorMiddleware(RetryMiddleware):
             logger.error('%s %s retry times beyond the bounds' % (request.url, request.meta['title']))
         super()._retry(request, reason, spider)
 
+    def process_exception(self, request, exception, spider):
+        # 碰到时间异常则直接返回
+        if isinstance(exception, TimeoutError):
+            return request
+
 
 class ProxyMiddleware(object):
 
@@ -77,8 +85,7 @@ class ProxyMiddleware(object):
         获取随机的IP地址
         :return:
         """
-        url = 'http://47.107.246.172:5555/random'
-        response = requests.get(url, timeout=10)
+        response = requests.get(proxy_url, timeout=10)
         datum = json.loads(response.text)
         if datum['status'] == 'success':
             return datum['proxy']
