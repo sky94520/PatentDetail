@@ -12,11 +12,11 @@ from twisted.internet.error import TimeoutError
 from scrapy.http import HtmlResponse
 from scrapy.downloadermiddlewares.retry import RetryMiddleware
 import logging
-
-from PatentDetail.config import proxy_url
+from .Proxy import Proxy
 
 
 logger = logging.getLogger(__name__)
+PROXY = Proxy()
 
 
 class GetFromLocalityMiddleware(object):
@@ -71,24 +71,14 @@ class ProxyMiddleware(object):
         # 最大重试次数
         retry_times = request.meta.get('retry_times', 0)
         max_retry_times = spider.crawler.settings.get('MAX_RETRY_TIMES')
-        proxy = self._get_random_proxy()
+        # 如果存在尝试，则换一个代理
+        global PROXY
+        proxy = PROXY.get_proxy(dirty=retry_times != 0)
         # 最后一次尝试不使用代理
         if proxy and retry_times != max_retry_times:
             logger.info('使用代理%s' % proxy)
             request.meta['proxy'] = 'http://%s' % proxy
         else:
-            reason = '代理获取失败' if proxy else ('达到最大重试次数[%d/%d]' % (retry_times, max_retry_times))
+            reason = '代理获取失败' if proxy is None else ('达到最大重试次数[%d/%d]' % (retry_times, max_retry_times))
             logger.warning('%s，使用自己的IP' % reason)
 
-    def _get_random_proxy(self):
-        """
-        获取随机的IP地址
-        :return:
-        """
-        response = requests.get(proxy_url, timeout=10)
-        datum = json.loads(response.text)
-        if datum['status'] == 'success':
-            return datum['proxy']
-        else:
-            logging.error(datum['msg'])
-            return None
