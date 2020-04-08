@@ -62,6 +62,7 @@ class RetryOrErrorMiddleware(RetryMiddleware):
     def process_exception(self, request, exception, spider):
         # 碰到时间异常则直接返回
         if isinstance(exception, TimeoutError):
+            PROXY.dirty = True
             return request
 
 
@@ -73,7 +74,7 @@ class ProxyMiddleware(object):
         max_retry_times = spider.crawler.settings.get('MAX_RETRY_TIMES')
         # 如果存在尝试，则换一个代理
         global PROXY
-        proxy = PROXY.get_proxy(dirty=retry_times != 0)
+        proxy = PROXY.get_proxy()
         # 最后一次尝试不使用代理
         if proxy and retry_times != max_retry_times:
             logger.info('使用代理%s' % proxy)
