@@ -61,9 +61,9 @@ class RetryOrErrorMiddleware(RetryMiddleware):
 
     def process_exception(self, request, exception, spider):
         # 碰到时间异常则直接返回
-        if isinstance(exception, TimeoutError):
-            PROXY.dirty = True
-            return request
+        # if isinstance(exception, TimeoutError):
+        PROXY.dirty = True
+        return request
 
 
 class ProxyMiddleware(object):
